@@ -37,40 +37,44 @@ jobs:
   include:
     - stage: prepare cache-riscv-tools
       script:
-        - travis_wait 120 make tools -C regression SUITE=none
+        - travis_wait 80 scripts/init-submodules.sh
+        - travis_wait 120 scripts/build-tools.sh
       before_install:
         - export CXX=g++-4.8 CC=gcc-4.8 RISCV=toolchain
     - stage: prepare cache-verilator
       script:
-        - travis_wait 120 make verilator -C verisim SUITE=none
+        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
+        - travis_wait 120 make verilator -C verisim
       before_install:
         - export CXX=g++-4.8 CC=gcc-4.8 RISCV=toolchain
     - &test_emulator
       stage: Test
       script:
+        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
         - travis_wait 80 make $(TEST_CONFIG) -C verisim
         - travis_wait 80 make run-asm-tests $(TEST_CONFIG) -C verisim
         - travis_wait 80 make run-bmark-tests $(TEST_CONFIG) -C verisim
       before_script:
-        - TEST_CONFIG=''
+        - export RISCV=toolchain TEST_CONFIG=''
     - <<: *test_emulator
       before_script:
-        - TEST_CONFIG='CONFIG=SmallBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=SmallBoomConfig'
     - <<: *test_emulator
       before_script:
-        - TEST_CONFIG='CONFIG=MediumBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=MediumBoomConfig'
     - <<: *test_emulator
       before_script:
-        - TEST_CONFIG='CONFIG=MegaBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=MegaBoomConfig'
     - &test_vsim
       stage: Test
       script:
+        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
         - travis_wait 80 make verilog $(TEST_CONFIG) -C vsim
       before_script:
-        - TEST_CONFIG='CONFIG=jtagSmallBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=jtagSmallBoomConfig'
     - <<: *test_vsim
       before_script:
-        - TEST_CONFIG='CONFIG=jtagMediumBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=jtagMediumBoomConfig'
     - <<: *test_vsim
       before_script:
-        - TEST_CONFIG='CONFIG=jtagMegaBoomConfig'
+        - export RISCV=toolchain TEST_CONFIG='CONFIG=jtagMegaBoomConfig'
