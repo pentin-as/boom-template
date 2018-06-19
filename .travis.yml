@@ -6,8 +6,8 @@ cache:
   apt: true
   directories:
     $HOME/.ivy2
-    regression/install
-    emulator/verilator
+    toolchain
+    verisim/verilator
 
 # packages needed to build riscv-tools
 addons:
@@ -39,39 +39,38 @@ jobs:
       script:
         - travis_wait 120 make tools -C regression SUITE=none
       before_install:
-        - export CXX=g++-4.8 CC=gcc-4.8
-      before_cache:
-        - ls -t regression/install | tail -n+2 | sed s@^@regression/install/@ | xargs rm -rf
+        - export CXX=g++-4.8 CC=gcc-4.8 RISCV=toolchain
     - stage: prepare cache-verilator
       script:
-        - travis_wait 120 make verilator -C regression SUITE=none
+        - travis_wait 120 make verilator -C verisim SUITE=none
       before_install:
-        - export CXX=g++-4.8 CC=gcc-4.8    
-    - &test
+        - export CXX=g++-4.8 CC=gcc-4.8 RISCV=toolchain
+    - &test_emulator
       stage: Test
       script:
-        - travis_wait 80 make emulator-ndebug -C regression SUITE=JtagDtmSuite JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-32 -C regression SUITE=JtagDtmSuite JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-64 -C regression SUITE=JtagDtmSuite JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-32 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest64 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-64 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest64 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-32 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest32 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-64 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest32 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-32 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest8 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-        - travis_wait 80 make emulator-jtag-dtm-tests-64 -C regression SUITE=JtagDtmSuite JTAG_DTM_TEST=MemTest8 JTAG_DTM_ENABLE_SBA=on JVM_MEMORY=3G
-    - <<: *test
+        - travis_wait 80 make $(TEST_CONFIG) -C verisim
+        - travis_wait 80 make run-asm-tests $(TEST_CONFIG) -C verisim
+        - travis_wait 80 make run-bmark-tests $(TEST_CONFIG) -C verisim
+      before_script:
+        - TEST_CONFIG=''
+    - <<: *test_emulator
+      before_script:
+        - TEST_CONFIG='CONFIG=SmallBoomConfig'
+    - <<: *test_emulator
+      before_script:
+        - TEST_CONFIG='CONFIG=MediumBoomConfig'
+    - <<: *test_emulator
+      before_script:
+        - TEST_CONFIG='CONFIG=MegaBoomConfig'
+    - &test_vsim
+      stage: Test
       script:
-        - travis_wait 80 make emulator-ndebug -C regression SUITE=UnittestSuite JVM_MEMORY=3G
-        - travis_wait 80 make emulator-regression-tests -C regression SUITE=UnittestSuite JVM_MEMORY=3G
-    - <<: *test
-      script:
-        - travis_wait 80 make emulator-ndebug -C regression SUITE=RocketSuiteC JVM_MEMORY=3G
-        - travis_wait 80 make emulator-regression-tests -C regression SUITE=RocketSuiteC JVM_MEMORY=3G
-    - <<: *test
-      script:
-        - travis_wait 80 make emulator-ndebug -C regression SUITE=RocketSuiteB JVM_MEMORY=3G
-        - travis_wait 80 make emulator-regression-tests -C regression SUITE=RocketSuiteB JVM_MEMORY=3G
-    - <<: *test
-      script:
-        - travis_wait 80 make emulator-ndebug -C regression SUITE=RocketSuiteA JVM_MEMORY=3G
-        - travis_wait 80 make emulator-regression-tests -C regression SUITE=RocketSuiteA JVM_MEMORY=3G
+        - travis_wait 80 make verilog $(TEST_CONFIG) -C vsim
+      before_script:
+        - TEST_CONFIG='CONFIG=jtagSmallBoomConfig'
+    - <<: *test_vsim
+      before_script:
+        - TEST_CONFIG='CONFIG=jtagMediumBoomConfig'
+    - <<: *test_vsim
+      before_script:
+        - TEST_CONFIG='CONFIG=jtagMegaBoomConfig'
