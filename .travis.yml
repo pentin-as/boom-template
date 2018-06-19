@@ -44,7 +44,7 @@ jobs:
     - stage: prepare cache-verilator
       script:
         - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
-        - travis_wait 120 make verilator -C verisim
+        - travis_wait 80 make verilator -C verisim
       before_install:
         - export CXX=g++-4.8 CC=gcc-4.8 RISCV=toolchain
     - &test_emulator
