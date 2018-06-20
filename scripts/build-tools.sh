@@ -4,7 +4,7 @@
 git submodule update --init
 # rocket-chip (skip tools)
 (cd rocket-chip && git submodule update --init riscv-tools)
-(cd rocket-chip/riscv-tools && git submodule update --init --recursive --depth=200 riscv-isa-sim riscv-fesvr riscv-pk riscv-opcodes riscv-tests riscv-gnu-toolchain riscv-openocd)
+(cd rocket-chip/riscv-tools && git submodule update --init --recursive --depth=300 riscv-isa-sim riscv-fesvr riscv-pk riscv-opcodes riscv-tests riscv-gnu-toolchain riscv-openocd)
 
 echo "cd rocket-chip/riscv-tools"
 cd rocket-chip/riscv-tools
