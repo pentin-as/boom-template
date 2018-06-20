@@ -37,23 +37,22 @@ jobs:
   include:
     - stage: prepare cache-riscv-tools
       script:
-        - travis_wait 80 scripts/init-submodules.sh
-        - travis_wait 120 scripts/build-tools.sh
+        - scripts/build-tools.sh
       before_install:
         - export CXX=g++-4.8 CC=gcc-4.8 RISCV=`pwd`/toolchain
     - stage: prepare cache-verilator
       script:
-        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
-        - travis_wait 80 make verilator -C verisim
+        - scripts/init-submodules-no-riscv-tools.sh
+        - make verilator -C verisim
       before_install:
         - export CXX=g++-4.8 CC=gcc-4.8 RISCV=`pwd`/toolchain
     - &test_emulator
       stage: Test
       script:
-        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
-        - travis_wait 80 make $(TEST_CONFIG) -C verisim
-        - travis_wait 80 make run-asm-tests $(TEST_CONFIG) -C verisim
-        - travis_wait 80 make run-bmark-tests $(TEST_CONFIG) -C verisim
+        - scripts/init-submodules-no-riscv-tools.sh
+        - make $(TEST_CONFIG) -C verisim
+        - make run-asm-tests $(TEST_CONFIG) -C verisim
+        - make run-bmark-tests $(TEST_CONFIG) -C verisim
       before_script:
         - export RISCV=`pwd`/toolchain TEST_CONFIG=''
     - <<: *test_emulator
@@ -68,8 +67,8 @@ jobs:
     - &test_vsim
       stage: Test
       script:
-        - travis_wait 80 scripts/init-submodules-no-riscv-tools.sh
-        - travis_wait 80 make verilog $(TEST_CONFIG) -C vsim
+        - scripts/init-submodules-no-riscv-tools.sh
+        - make verilog $(TEST_CONFIG) -C vsim
       before_script:
         - export RISCV=`pwd`/toolchain TEST_CONFIG='CONFIG=jtagSmallBoomConfig'
     - <<: *test_vsim
